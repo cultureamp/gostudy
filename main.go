@@ -1,11 +1,21 @@
 package main
 
 import (
-	"io"
+	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 )
+
+type RequestThing struct {
+	Name string
+	Camp string
+}
+
+type ResponseThing struct {
+	Greeting string
+}
 
 func main() {
 	port := os.Getenv("PORT")
@@ -14,8 +24,25 @@ func main() {
 	}
 
 	app := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		data, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			w.WriteHeader(500)
+			return
+		}
+		r.Body.Close()
+
+		var rt RequestThing
+		json.Unmarshal(data, &rt)
+
+		respBytes, err := json.Marshal(ResponseThing{Greeting: "hello " + rt.Name})
+		if err != nil {
+			w.WriteHeader(500)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(200)
-		io.WriteString(w, "hello world")
+		w.Write(respBytes)
 	})
 
 	http.ListenAndServe(":"+port, httplog(secure(app)))
