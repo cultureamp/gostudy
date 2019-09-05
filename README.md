@@ -163,3 +163,70 @@ index 0a98801..221ec07 100644
 +	})
 +}
 ```
+
+Session 02 — JSON request & response
+------------------------------------
+
+```diff
+commit 9d023bce7b232df9942e6e6029e122ec57480ef3
+Author: Paul Annesley <paul@annesley.cc>
+Date:   Thu Sep 5 14:47:13 2019 +1000
+
+    JSON request & response data
+
+diff --git a/main.go b/main.go
+index 221ec07..40bc586 100644
+--- a/main.go
++++ b/main.go
+@@ -1,12 +1,22 @@
+ package main
+ 
+ import (
+-	"io"
++	"encoding/json"
++	"io/ioutil"
+ 	"log"
+ 	"net/http"
+ 	"os"
+ )
+ 
++type RequestThing struct {
++	Name string
++	Camp string
++}
++
++type ResponseThing struct {
++	Greeting string
++}
++
+ func main() {
+ 	port := os.Getenv("PORT")
+ 	if port == "" {
+@@ -14,8 +24,25 @@ func main() {
+ 	}
+ 
+ 	app := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
++		data, err := ioutil.ReadAll(r.Body)
++		if err != nil {
++			w.WriteHeader(500)
++			return
++		}
++		r.Body.Close()
++
++		var rt RequestThing
++		json.Unmarshal(data, &rt)
++
++		respBytes, err := json.Marshal(ResponseThing{Greeting: "hello " + rt.Name})
++		if err != nil {
++			w.WriteHeader(500)
++			return
++		}
++
++		w.Header().Set("Content-Type", "application/json")
+ 		w.WriteHeader(200)
+-		io.WriteString(w, "hello world")
++		w.Write(respBytes)
+ 	})
+ 
+ 	http.ListenAndServe(":"+port, httplog(secure(app)))
+```
