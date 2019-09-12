@@ -230,3 +230,10 @@ index 221ec07..40bc586 100644
  
  	http.ListenAndServe(":"+port, httplog(secure(app)))
 ```
+
+Session 03 — Miscellaneous
+--------------------------
+
+This was a more casual / exploration / Q&A session, with no permanent code.
+
+We explored packages and their `.go` file layout, importing, exported vs unexported, pointers, adding methods to types to make “objects”, discussed what even is an object, etc.
